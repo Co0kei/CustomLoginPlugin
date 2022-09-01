@@ -3,10 +3,10 @@ package net.bedwarspro.plugin;
 import net.bedwarspro.plugin.http.HTTPRequests;
 import net.bedwarspro.plugin.http.NamelessAPI;
 import net.bedwarspro.plugin.listener.JoinListener;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.Logger;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
-
-import java.util.logging.Level;
 
 public class CustomLogin extends JavaPlugin {
 
@@ -17,6 +17,7 @@ public class CustomLogin extends JavaPlugin {
 	@Override
 	public void onEnable() {
 		announcePluginStart();
+		addLogFilter();
 		loadConfig();
 		setupHTTPRequests();
 		setupNamelessAPI();
@@ -24,7 +25,11 @@ public class CustomLogin extends JavaPlugin {
 	}
 
 	private void announcePluginStart() {
-		this.getLogger().log(Level.INFO, "Plugin online!");
+		this.getLogger().info("Plugin online!");
+	}
+
+	private void addLogFilter() {
+		((Logger) LogManager.getRootLogger()).addFilter(new LogFilter());
 	}
 
 	private void loadConfig() {

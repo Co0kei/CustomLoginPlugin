@@ -7,6 +7,7 @@ public class Config {
 	private final CustomLogin plugin;
 	private String apiUrl;
 	private String apiKey;
+	private boolean debug;
 
 	public Config(final CustomLogin plugin) {
 		this.plugin = plugin;
@@ -31,14 +32,19 @@ public class Config {
 		final FileConfiguration configuration = plugin.getConfig();
 		this.apiUrl = configuration.getString("api-url");
 		this.apiKey = configuration.getString("api-key");
+		this.debug = configuration.getBoolean("debug");
 	}
 
 	public String getApiUrl() {
-		return apiUrl;
+		return this.apiUrl;
 	}
 
 	public String getApiKey() {
-		return apiKey;
+		return this.apiKey;
 	}
-	
+
+	public boolean isDebug() {
+		return this.debug;
+	}
+
 }

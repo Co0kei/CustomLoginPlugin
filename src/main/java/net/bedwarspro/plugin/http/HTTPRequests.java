@@ -3,6 +3,7 @@ package net.bedwarspro.plugin.http;
 import com.google.common.io.CharStreams;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import net.bedwarspro.plugin.Config;
 import net.bedwarspro.plugin.CustomLogin;
 
 import java.io.IOException;
@@ -18,34 +19,29 @@ public class HTTPRequests {
 	private final CustomLogin plugin;
 	private String apiUrl;
 	private String apiKey;
+	private boolean isDebug;
 
 	public HTTPRequests(final CustomLogin plugin) {
 		this.plugin = plugin;
-		loadAPICredentials();
+		assignVariables();
 	}
 
-	private void loadAPICredentials() {
-		this.apiUrl = this.plugin.getConfiguration().getApiUrl();
-		this.apiKey = this.plugin.getConfiguration().getApiKey();
+	private void assignVariables() {
+		Config config = this.plugin.getConfiguration();
+		this.apiUrl = config.getApiUrl();
+		this.apiKey = config.getApiKey();
+		this.isDebug = config.isDebug();
 	}
 
-	/**
-	 * @param route The route to perform a GET request to
-	 * @return the response as json
-	 */
 	protected JsonObject getHTTP(String route) throws IOException {
 		HttpURLConnection connection = setupConnection(route, "GET");
 		return parseResponse(connection);
 	}
 
-	/**
-	 * @param route The route to perform a POST request to
-	 * @param body  The json body to be sent
-	 */
 	protected void postHTTP(String route, JsonObject body) throws IOException {
 		HttpURLConnection connection = setupConnection(route, "POST");
 		writeBody(connection, body);
-		parseResponse(connection); // This is required for the post to succeed
+		parseResponse(connection);
 	}
 
 	private HttpURLConnection setupConnection(String route, String method) throws IOException {
@@ -59,18 +55,27 @@ public class HTTPRequests {
 		connection.setConnectTimeout(5000);
 		connection.setReadTimeout(5000);
 		connection.setDoOutput(true);
+		logDebug("Opened '" + method + "' connecton to '" + route + "'");
 		return connection;
 	}
 
 	private JsonObject parseResponse(HttpURLConnection connection) throws IOException {
 		final InputStream inputStream = connection.getInputStream();
 		final InputStreamReader reader = new InputStreamReader(inputStream);
-		return new Gson().fromJson(CharStreams.toString(reader), JsonObject.class);
+		JsonObject response = new Gson().fromJson(CharStreams.toString(reader), JsonObject.class);
+		logDebug("Received response '" + response + "'");
+		return response;
 	}
 
 	private void writeBody(HttpURLConnection connection, JsonObject body) throws IOException {
 		final OutputStream out = connection.getOutputStream();
 		out.write(body.toString().getBytes(StandardCharsets.UTF_8));
+		logDebug("Written body '" + body.toString() + "'");
+	}
+
+	private void logDebug(String message) {
+		if (this.isDebug)
+			this.plugin.getLogger().info("[DEBUG] " + message);
 	}
 
 }

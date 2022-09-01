@@ -11,19 +11,34 @@ import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.UUID;
+import java.util.logging.Logger;
 
 public class JoinListener implements Listener {
 
 	private final NamelessAPI namelessAPI;
+	private final Logger logger;
 
 	public JoinListener(CustomLogin plugin) {
 		this.namelessAPI = plugin.getNamelessAPI();
+		this.logger = plugin.getLogger();
 	}
 
 	@EventHandler
 	public void onPlayerConnect(AsyncPlayerPreLoginEvent event) {
+		String message;
+		try {
+			message = handleConnection(event);
+		} catch (Exception exception) {
+			message = handleConnectionError(exception);
+		}
+		event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER, translateColors(message));
+	}
+
+	private String handleConnection(AsyncPlayerPreLoginEvent event) {
 		String name = event.getName();
 		UUID uuid = event.getUniqueId();
+
+		this.logger.info("Player '" + name + "' has connected");
 
 		String message;
 		if (this.namelessAPI.isPlayerRegistered(uuid)) {
@@ -32,8 +47,7 @@ public class JoinListener implements Listener {
 			String ip = event.getAddress().getHostAddress();
 			message = getRegisterMessage(name, ip);
 		}
-
-		event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER, translateColors(message));
+		return message;
 	}
 
 	private String getAlreadyRegisteredMessage(String name) {
@@ -46,7 +60,7 @@ public class JoinListener implements Listener {
 	}
 
 	private Date getRegisteredDate() {
-		long unixSeconds = this.namelessAPI.getPlayerRegisteredTime();
+		long unixSeconds = this.namelessAPI.getLastConnectedRegisteredTimestamp();
 		return new Date(unixSeconds * 1000L);
 	}
 
@@ -57,12 +71,12 @@ public class JoinListener implements Listener {
 
 	private String getRegisterMessage(String name, String ip) {
 		String codeToUse;
-		Code existingCode = this.namelessAPI.requestCodeFor(name);
-		if (existingCode == null) {
+		Code requestedCode = this.namelessAPI.requestCodeFor(name);
+		if (requestedCode.exists()) {
+			codeToUse = requestedCode.getCode();
+		} else {
 			Code newCode = generateAndPostNewCode(name, ip);
 			codeToUse = newCode.getCode();
-		} else {
-			codeToUse = existingCode.getCode();
 		}
 
 		return "\n&3Hey &b" + name + "&3,\n\n" +
@@ -81,6 +95,11 @@ public class JoinListener implements Listener {
 		int maxNumber = 999999;
 		int code = (int) (Math.random() * (maxNumber - minNumber + 1) + minNumber);
 		return code;
+	}
+
+	private String handleConnectionError(Exception exception) {
+		exception.printStackTrace();
+		return "&cAn error occurred.";
 	}
 
 	private String translateColors(String text) {

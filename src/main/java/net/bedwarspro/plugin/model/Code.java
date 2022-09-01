@@ -4,17 +4,25 @@ import com.google.gson.JsonObject;
 
 public class Code {
 
-	private final String minecraft_name;
-	private final String code;
-	private final String ip;
+	private String minecraft_name;
+	private String code;
+	private String ip;
+
+	private final boolean exists;
+
+	public Code() {
+		this.exists = false;
+	}
 
 	public Code(String minecraft_name, String code, String ip) {
+		this.exists = true;
 		this.minecraft_name = minecraft_name;
 		this.code = code;
 		this.ip = ip;
 	}
 
 	public Code(JsonObject response) {
+		this.exists = true;
 		this.minecraft_name = response.get("minecraft_name").getAsString();
 		this.code = response.get("code").getAsString();
 		this.ip = response.get("ip").getAsString();
@@ -31,7 +39,11 @@ public class Code {
 		json.addProperty("code", this.code);
 		json.addProperty("ip", this.ip);
 	}
-	
+
+	public boolean exists() {
+		return this.exists;
+	}
+
 	public String getCode() {
 		return this.code;
 	}

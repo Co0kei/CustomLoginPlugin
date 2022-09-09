@@ -17,8 +17,10 @@ import java.nio.charset.StandardCharsets;
 public class HTTPRequests {
 
 	private final CustomLogin plugin;
-	private String apiUrl;
-	private String apiKey;
+	private String namelessAPIUrl;
+	private String namelessAPIKey;
+	private String bedwarsProAPIUrl;
+	private String bedwarsProAPIKey;
 	private boolean isDebug;
 
 	public HTTPRequests(final CustomLogin plugin) {
@@ -28,26 +30,29 @@ public class HTTPRequests {
 
 	private void assignVariables() {
 		Config config = this.plugin.getConfiguration();
-		this.apiUrl = config.getApiUrl();
-		this.apiKey = config.getApiKey();
+		this.namelessAPIUrl = config.getNamelessAPIUrl();
+		this.namelessAPIKey = config.getNamelessAPIKey();
+		this.bedwarsProAPIUrl = config.getBedwarsProAPIUrl();
+		this.bedwarsProAPIKey = config.getBedwarsProAPIKey();
 		this.isDebug = config.isDebug();
 	}
 
-	protected JsonObject getHTTP(String route) throws IOException {
-		HttpURLConnection connection = setupConnection(route, "GET");
+	protected JsonObject getHTTP(API api, String route) throws IOException {
+		HttpURLConnection connection = setupConnection(api, route, "GET");
 		return parseResponse(connection);
 	}
 
-	protected void postHTTP(String route, JsonObject body) throws IOException {
-		HttpURLConnection connection = setupConnection(route, "POST");
+	protected void postHTTP(API api, String route, JsonObject body) throws IOException {
+		HttpURLConnection connection = setupConnection(api, route, "POST");
 		writeBody(connection, body);
 		parseResponse(connection);
 	}
 
-	private HttpURLConnection setupConnection(String route, String method) throws IOException {
-		URL url = new URL(this.apiUrl + route);
+	private HttpURLConnection setupConnection(API api, String route, String method) throws IOException {
+		URL url = new URL(getURL(api, route));
 		HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-		connection.setRequestProperty("Authorization", "Bearer " + this.apiKey);
+		if (api == API.NAMELESS) // Bw pro api uses the url for the key.
+			connection.setRequestProperty("Authorization", "Bearer " + this.namelessAPIKey);
 		connection.setRequestMethod(method);
 		connection.setRequestProperty("Content-Type", "application/json");
 		connection.setRequestProperty("charset", "utf-8");
@@ -55,8 +60,18 @@ public class HTTPRequests {
 		connection.setConnectTimeout(5000);
 		connection.setReadTimeout(5000);
 		connection.setDoOutput(true);
-		logDebug("Opened '" + method + "' connecton to '" + route + "'");
+		logDebug("Opened '" + method + "' connecton to '" + url.toString() + "'");
 		return connection;
+	}
+
+	private String getURL(API api, String route) {
+		if (api == API.NAMELESS) {
+			return this.namelessAPIUrl + route;
+		} else if (api == API.BEDWARSPRO) {
+			return this.bedwarsProAPIUrl + route + "&key=" + this.bedwarsProAPIKey;
+		} else {
+			throw new Error("Unknown API type.");
+		}
 	}
 
 	private JsonObject parseResponse(HttpURLConnection connection) throws IOException {

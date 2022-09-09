@@ -1,5 +1,6 @@
 package net.bedwarspro.plugin;
 
+import net.bedwarspro.plugin.http.BedwarsProAPI;
 import net.bedwarspro.plugin.http.HTTPRequests;
 import net.bedwarspro.plugin.http.NamelessAPI;
 import net.bedwarspro.plugin.listener.JoinListener;
@@ -11,8 +12,9 @@ import org.bukkit.plugin.java.JavaPlugin;
 public class CustomLogin extends JavaPlugin {
 
 	private Config configuration;
-	private NamelessAPI namelessAPI;
 	private HTTPRequests httpRequests;
+	private NamelessAPI namelessAPI;
+	private BedwarsProAPI bedwarsProAPI;
 
 	@Override
 	public void onEnable() {
@@ -20,7 +22,7 @@ public class CustomLogin extends JavaPlugin {
 		addLogFilter();
 		loadConfig();
 		setupHTTPRequests();
-		setupNamelessAPI();
+		setupAPIs();
 		registerEvents();
 	}
 
@@ -40,8 +42,9 @@ public class CustomLogin extends JavaPlugin {
 		this.httpRequests = new HTTPRequests(this);
 	}
 
-	private void setupNamelessAPI() {
+	private void setupAPIs() {
 		this.namelessAPI = new NamelessAPI(this);
+		this.bedwarsProAPI = new BedwarsProAPI(this);
 	}
 
 	private void registerEvents() {
@@ -58,6 +61,10 @@ public class CustomLogin extends JavaPlugin {
 
 	public NamelessAPI getNamelessAPI() {
 		return this.namelessAPI;
+	}
+
+	public BedwarsProAPI getBedwarsProAPI() {
+		return this.bedwarsProAPI;
 	}
 
 }

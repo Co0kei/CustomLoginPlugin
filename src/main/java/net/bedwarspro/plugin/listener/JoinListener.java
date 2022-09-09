@@ -1,6 +1,7 @@
 package net.bedwarspro.plugin.listener;
 
 import net.bedwarspro.plugin.CustomLogin;
+import net.bedwarspro.plugin.http.BedwarsProAPI;
 import net.bedwarspro.plugin.http.NamelessAPI;
 import net.bedwarspro.plugin.model.Code;
 import org.bukkit.ChatColor;
@@ -16,10 +17,12 @@ import java.util.logging.Logger;
 public class JoinListener implements Listener {
 
 	private final NamelessAPI namelessAPI;
+	private final BedwarsProAPI bedwarsProAPI;
 	private final Logger logger;
 
 	public JoinListener(CustomLogin plugin) {
 		this.namelessAPI = plugin.getNamelessAPI();
+		this.bedwarsProAPI = plugin.getBedwarsProAPI();
 		this.logger = plugin.getLogger();
 	}
 
@@ -40,6 +43,10 @@ public class JoinListener implements Listener {
 
 		this.logger.info("Player '" + name + "' has connected");
 
+		if (!hasPlayerPlayedBefore(uuid)) {
+			return getNotPlayedBeforeMessage(name);
+		}
+
 		String message;
 		if (this.namelessAPI.isPlayerRegistered(uuid)) {
 			message = getAlreadyRegisteredMessage(name);
@@ -48,6 +55,16 @@ public class JoinListener implements Listener {
 			message = getRegisterMessage(name, ip);
 		}
 		return message;
+	}
+
+	private boolean hasPlayerPlayedBefore(UUID uuid) {
+		return this.bedwarsProAPI.hasPlayerPlayedBefore(uuid);
+	}
+
+	private String getNotPlayedBeforeMessage(String name) {
+		return "\n&3Hey &b" + name + "&3,\n\n" +
+				"&3You must have played on Bedwars Pro before to register.\n\n" +
+				"Quickly connect to the Minecraft IP &bbedwarspro.net&3, then come back here!\n\n";
 	}
 
 	private String getAlreadyRegisteredMessage(String name) {

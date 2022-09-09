@@ -1,3 +1,5 @@
-api-url: ""
-api-key: ""
+nameless-api-url: ""
+nameless-api-key: ""
+bedwarspro-api-url: ""
+bedwarspro-api-key: ""
 debug: true

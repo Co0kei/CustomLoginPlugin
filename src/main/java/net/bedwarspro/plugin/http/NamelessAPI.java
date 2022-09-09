@@ -18,7 +18,7 @@ public class NamelessAPI {
 	private final String GET_USER_BY_UUID_ROUTE = "/users/integration_id:minecraft:";
 	private final String HTTP_RESPONSE_400 = "Server returned HTTP response code: 400";
 	private final String ERROR = "error";
-	
+
 	public NamelessAPI(final CustomLogin plugin) {
 		this.httpRequests = plugin.getHttpRequests();
 	}
@@ -32,7 +32,7 @@ public class NamelessAPI {
 	}
 
 	private boolean checkRegistered(UUID uuid) throws IOException {
-		this.latestUserResponse = this.httpRequests.getHTTP(GET_USER_BY_UUID_ROUTE + trimUUID(uuid));
+		this.latestUserResponse = this.httpRequests.getHTTP(API.NAMELESS, GET_USER_BY_UUID_ROUTE + trimUUID(uuid));
 		return true;
 	}
 
@@ -44,7 +44,6 @@ public class NamelessAPI {
 		if (ioException.getMessage().startsWith(HTTP_RESPONSE_400)) {
 			// This error message will be shown if they are not yet registered. No need to log.
 		} else {
-			// Unknown connection issue.
 			ioException.printStackTrace();
 		}
 		return false;
@@ -59,7 +58,7 @@ public class NamelessAPI {
 	}
 
 	private Code requestCode(String minecraftName) throws IOException {
-		JsonObject response = this.httpRequests.getHTTP(GET_CODE_ROUTE + "&minecraft_name=" + minecraftName);
+		JsonObject response = this.httpRequests.getHTTP(API.NAMELESS, GET_CODE_ROUTE + "&minecraft_name=" + minecraftName);
 		return parseCodeFromResponse(response);
 	}
 
@@ -78,7 +77,7 @@ public class NamelessAPI {
 
 	public void postCode(Code code) {
 		try {
-			this.httpRequests.postHTTP(POST_CODE_ROUTE, code.getAsJson());
+			this.httpRequests.postHTTP(API.NAMELESS, POST_CODE_ROUTE, code.getAsJson());
 		} catch (IOException ioException) {
 			ioException.printStackTrace();
 		}
